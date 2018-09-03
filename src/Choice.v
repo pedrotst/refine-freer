@@ -31,6 +31,18 @@ Class Computes (s : Type) (eff : Type -> Type) := {
 
 Arguments computes {s eff _ a} _ _ _ _.
 
+
+Require Import Eff.
+
+Class Denotes (v : Type) (effs : list (Type -> Type)) := {
+  denotes : forall a, Eff effs a -> v -> Prop
+}.
+
+Arguments denotes {v effs _ _} _ _.
+
+Definition denotes' v a : Eff [Comp] a -> v -> Prop :=
+  fun st _ => False.
+
 (* Given an interpreter that can run any effect down to its denotation in
    Gallina, we can interpret any action. *)
 Inductive interpP {effs state a}
