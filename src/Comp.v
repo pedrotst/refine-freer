@@ -11,23 +11,29 @@ Unset Transparent Obligations.
 
 Definition Comp (A : Type) := A -> Prop.
 
-Program Instance Comp_Functor : Functor Comp := {
-  fmap := fun A B f (x : Comp A) b => exists a : A, x a /\ f a = b
-}.
+Instance Comp_Functor : Functor Comp :=
+  {
+    (* fmap: forall a b, (a -> b) -> (Comp a) -> b -> Prop *)
+    fmap := fun (a b: Type) (ma: a -> b) (fa: a -> Prop) (xb: b) => exists (xa: a), ma xa = xb /\ fa xa
 
-Program Instance Comp_Applicative : Applicative Comp := {
-  pure := fun _ x a => x = a;
-  ap   := fun A B mf mx r => exists f x, mf f /\ mx x /\ f x = r
-}.
+  }.
+Program Instance Comp_Applicative : Applicative Comp :=
+  {
+    pure := fun A (a: A) (a': A) => a = a';
+    ap := fun A B (f: (A -> B) -> Prop) (g: A -> Prop) (b: B) => exists a (fa_b: A -> B),
+              fa_b a = b /\ g a /\ f fa_b
+  }.
 
-Program Instance Comp_Alternative : Alternative Comp := {
-  empty  := fun A _ => False;
-  choose := fun A x y s => x s \/ y s (* jww (2016-01-28): right? *)
-}.
+Program Instance Comp_Alternative : Alternative Comp :=
+  {
+    empty := fun _ _ => False;
+    choose := fun X (f1: X -> Prop) (f2: X -> Prop) x => f1 x \/ f2 x
+  }.
 
-Program Instance Comp_Monad : Monad Comp := {
-  join := fun A m r => exists t : Comp A, t r /\ m t
-}.
+Program Instance Comp_Monad : Monad Comp :=
+  {
+    join := fun A (f: (A -> Prop) -> Prop) a => exists f', f' a /\ f f'
+  }.
 
 Module CompLaws.
 
@@ -67,3 +73,15 @@ Definition comp `(f : A -> Prop) : Comp A := f.
 Definition computes_to {A : Type} (ca : Comp A) (a : A) : Prop := ca a.
 
 Notation "c ↝ v" := (computes_to c v) (at level 40).
+
+(*
+
+  fmap := fun A B f (x : Comp A) b => exists a : A, x a /\ f a = b
+  pure := fun _ x a => x = a;
+  ap   := fun A B mf mx r => exists f x, mf f /\ mx x /\ f x = r
+
+  empty  := fun A _ => False;
+  choose := fun A x y s => x s \/ y s (* jww (2016-01-28): right? *)
+
+  join := fun A m r => exists t : Comp A, t r /\ m t
+*)

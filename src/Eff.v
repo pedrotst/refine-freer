@@ -36,6 +36,9 @@ Definition Eff (effs : list (Type -> Type)) (a : Type) : Type :=
 Definition send `{Member eff effs} `(t : eff a) : Eff effs a :=
   Impure (inj t) Pure.
 
+
+Obligation Tactic :=program_simpl.
+
 Program Fixpoint Eff_size `(q : Eff effs a)
         (P : forall eff r, FindElem eff effs -> eff r -> r) : nat :=
   match q with

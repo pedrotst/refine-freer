@@ -11,6 +11,8 @@ Require Export
 
 Import ListNotations.
 
+Require Import SF.Imp.
+
 Generalizable All Variables.
 
 Fixpoint InT `(a : A) (l : list A) : Type :=
@@ -72,8 +74,8 @@ Program Instance State_Computes {s} : Computes s (State s) := {
 }.
 
 Lemma choice_and_state_computes :
-  forall eff : Type -> Type,
-    InT eff [Choice; State (nat : Type)] -> Computes nat eff.
+  forall (eff : Type -> Type) s,
+    InT eff [Choice; State s] -> Computes s eff.
 Proof.
   intros.
   destruct X; subst.
