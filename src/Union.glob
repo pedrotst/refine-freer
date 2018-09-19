@@ -1,0 +1,141 @@
+DIGEST 78d8541c7039f79ecd29d0c78c4a3bae
+FTop.Union
+R17:35 Coq.Program.Program <> <> lib
+R39:57 Coq.Program.Tactics <> <> lib
+R61:74 Coq.Lists.List <> <> lib
+R78:95 Hask.Control.Monad <> <> lib
+ind 216:221 <> UnionF
+constr 271:275 <> UThis
+constr 320:324 <> UThat
+R255:258 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R236:239 Coq.Init.Datatypes <> list ind
+R246:249 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R294:297 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R298:303 Top.Union <> UnionF ind
+R309:312 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R308:308 Top.Union <> t var
+R313:313 Top.Union <> r var
+R305:305 Top.Union <> a var
+R291:291 Top.Union <> t var
+R293:293 Top.Union <> a var
+R350:353 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R354:359 Top.Union <> UnionF ind
+R365:368 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R364:364 Top.Union <> t var
+R369:369 Top.Union <> r var
+R361:361 Top.Union <> a var
+R340:345 Top.Union <> UnionF ind
+R349:349 Top.Union <> r var
+R347:347 Top.Union <> a var
+R384:388 Top.Union <> UThis constr
+R384:388 Top.Union <> UThis constr
+R411:415 Top.Union <> UThat constr
+R411:415 Top.Union <> UThat constr
+def 440:444 <> Union
+R451:454 Coq.Init.Datatypes <> list ind
+R461:464 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R493:498 Top.Union <> UnionF ind
+R502:502 Top.Union <> r var
+R500:500 Top.Union <> a var
+prf 512:522 <> Union_empty
+R546:549 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R550:554 Coq.Init.Logic <> False ind
+R536:540 Top.Union <> Union def
+R545:545 Top.Union <> a var
+R542:543 Coq.Lists.List ListNotations :list_scope:'['_']' not
+R664:667 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R670:670 Top.Union <> x var
+R663:663 Top.Union <> x var
+not 638:638 <> ::x_'~>'_x
+def 729:734 <> decomp
+R742:746 Top.Union <> Union def
+R750:753 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R765:767 Coq.Init.Datatypes <> :type_scope:x_'+'_x not
+R762:762 Top.Union <> t var
+R764:764 Top.Union <> v var
+R768:772 Top.Union <> Union def
+R776:776 Top.Union <> v var
+R774:774 Top.Union <> r var
+R789:789 Top.Union <> u var
+R794:799 Top.Union <> UnionF ind
+R839:842 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R846:848 Coq.Init.Datatypes <> :type_scope:x_'+'_x not
+R843:843 Top.Union <> t var
+R845:845 Top.Union <> v var
+R849:853 Top.Union <> Union def
+R857:857 Top.Union <> v var
+R855:855 Top.Union <> r var
+R834:836 Coq.Init.Logic <> :type_scope:x_'='_x not
+R823:826 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R822:822 Top.Union <> t var
+R827:827 Top.Union <> r var
+R837:838 Top.Union <> xs var
+R868:872 Top.Union <> UThis constr
+R888:890 Coq.Init.Datatypes <> inl constr
+R902:906 Top.Union <> UThat constr
+R922:924 Coq.Init.Datatypes <> inr constr
+R934:940 Coq.Init.Logic <> eq_refl constr
+def 987:996 <> decomp_rev
+R1004:1008 Top.Union <> Union def
+R1012:1015 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1016:1016 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1018:1018 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1035:1037 Coq.Init.Datatypes <> :type_scope:x_'+'_x not
+R1026:1030 Top.Union <> Union def
+R1034:1034 Top.Union <> v var
+R1032:1032 Top.Union <> r var
+R1038:1038 Top.Union <> t var
+R1040:1040 Top.Union <> v var
+R1114:1116 Coq.Init.Datatypes <> inr constr
+R1114:1116 Coq.Init.Datatypes <> inr constr
+R1172:1174 Coq.Init.Datatypes <> inl constr
+R1177:1181 Top.Union <> UThis constr
+R1172:1174 Coq.Init.Datatypes <> inl constr
+R1177:1181 Top.Union <> UThis constr
+R1219:1221 Coq.Init.Datatypes <> inl constr
+R1224:1228 Top.Union <> UThat constr
+R1219:1221 Coq.Init.Datatypes <> inl constr
+R1224:1228 Top.Union <> UThat constr
+R1245:1247 Coq.Init.Datatypes <> inr constr
+R1245:1247 Coq.Init.Datatypes <> inr constr
+def 1283:1289 <> extract
+R1297:1301 Top.Union <> Union def
+R1303:1303 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1305:1305 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1312:1312 Top.Union <> t var
+R1314:1314 Top.Union <> v var
+R1327:1332 Top.Union <> decomp def
+R1334:1334 Top.Union <> u var
+R1343:1345 Coq.Init.Datatypes <> inl constr
+R1356:1358 Coq.Init.Datatypes <> inr constr
+R1365:1365 Coq.Program.Utils <> :program_scope:'!' not
+def 1423:1428 <> weaken
+R1440:1444 Top.Union <> Union def
+R1453:1457 Top.Union <> Union def
+R1468:1468 Top.Union <> v var
+R1461:1464 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R1460:1460 Top.Union <> t var
+R1465:1465 Top.Union <> r var
+R1473:1477 Top.Union <> UThat constr
+R1479:1479 Top.Union <> u var
+def 1492:1502 <> inject_last
+R1514:1517 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1529:1532 Coq.Init.Datatypes <> list ind
+R1539:1542 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1565:1565 Top.Union <> t var
+R1572:1576 Top.Union <> Union def
+R1589:1589 Top.Union <> a var
+R1580:1583 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1579:1579 Top.Union <> r var
+R1584:1584 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1586:1586 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1585:1585 Top.Union <> t var
+R1602:1602 Top.Union <> r var
+R1613:1614 Coq.Lists.List ListNotations :list_scope:'['_']' not
+R1619:1623 Top.Union <> UThis constr
+R1625:1625 Top.Union <> x var
+R1632:1635 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R1642:1646 Top.Union <> UThat constr
+R1649:1659 Top.Union <> inject_last def
+R1666:1666 Top.Union <> x var
+R1661:1661 Top.Union <> t var
