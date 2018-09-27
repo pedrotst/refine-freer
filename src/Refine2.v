@@ -25,101 +25,80 @@ Definition nonDet_list : Eff [Choice] (list nat) :=
 Definition det_list: Eff [Choice] _ :=
      (pure (repeat 10 11)).
 
-Fixpoint denotes_choice' `(s1: Eff (Choice :: effs) v) (s2: Eff [] v): Prop :=
-  match s2 with
-  | Impure u k => False_rect _ (Union_empty _ u)
-  | Pure a2 =>
-    match s1 with
-    | Pure a1 => a1 = a2
-    | Impure u1 k =>
-      match decomp u1 with
-      | inl (Pick p) => exists a, denotes_choice' (k a) s2 /\ p a
-      | inr u' => exists a, denotes_choice' (k a) s2
-      end
-    end
-  end.
+Class Denotes a b eff :=
+  {
+    denotes: forall {effs},  Eff (eff :: effs) a -> Eff effs b -> Prop
+  }.
 
-Fixpoint denotes_choice `(s1: Eff (Choice :: effs) v) (s2: Eff effs v): Prop :=
-  match s2 with
-  | Impure u k => exists a, denotes_choice s1 (k a) /\ ~ In Choice effs
-  | Pure a2 => denotes_choice' s1 (Pure a2)
-  end.
+Instance Denotes_Choice: Denotes v v Choice :=
+  {
+    denotes := fun effs =>
+                handleRelayP
+                  (fun x s => match s with
+                           | Pure x' =>  x = x'
+                           | _ => False
+                           end)
+                  (fun A '(Pick p) a => p a)
+  }.
 
-Fixpoint denotes_comp' `(s1: Eff (Comp :: effs) v): Eff [] v -> Prop :=
-  fun s2 => match s2 with
-  | Impure u _ => False_rect _ (Union_empty _ u)
-  | Pure a2 =>
-    match s1 with
-    | Pure a1 => a1 = a2
-    | Impure u1 k =>
-      match decomp u1 with
-      | inl p => exists a, denotes_comp' (k a) s2 /\ p a
-      | inr u' => exists a, denotes_comp' (k a) s2
-      end
-    end
-  end.
+Instance Denotes_Comp: Denotes v v Comp :=
+  {
+    denotes := fun effs =>
+                handleRelayP
+                  (fun x s => match s with
+                           | Pure x' =>  x = x'
+                           | _ => False
+                           end)
+                  (fun A (P: Comp A) a => P a)
+  }.
 
-Fixpoint denotes_comp `(s1: Eff (Comp :: effs) v) (s2: Eff effs v): Prop :=
-  match s2 with
-  | Impure u k => exists a, denotes_comp s1 (k a) /\ ~ In Comp effs
-  | Pure a2 => denotes_comp' s1 (Pure a2)
-  end.
+(* This refinement definition is only with respect to the head of the Effects
+ * So if want a refinement over multiple effects I have to compose several refiments
+ * Can I make it better to run through every effect?
+ *)
 
-(*
-Fixpoint denotes_state `(s1 s2: Eff ((State x) :: effs) v): Prop :=
-  match s1, s2 with
-  | Pure a1, Pure a2 => a1 = a2
-  | Impure u1 k1, Impure u2 k2 =>
-    match decomp u1, decomp u2 with
-      | inl p1, inl p2 => exists a1 a2, denotes_state (k1 a1) (k2 a2) /\ p1 = p2
-      | inr u1', inr u2' => exists a1 a2, denotes_state (k1 a1) (k2 a2)
-      | _, _ => False
-      end
-  | _, _ => False 
-  end.
-*)
+Definition refin {a b eff effs} `(Denotes a b eff) (e1 e2: Eff (eff::effs) a) :=
+  forall t, denotes e2 t -> denotes e1 t.
+
+Arguments refin {_ _ _ _ _} _ _.
+
+Definition cast_effs `(H: effs' = effs) `(e: Eff effs a):  Eff effs' a.
+  intros; subst; assumption.
+Defined.
+
+Arguments cast_effs {_ _ H _} _.
+
+Fixpoint refines {a b effs} `(Member eff effs -> Denotes a b eff) (e1 e2: Eff effs a): Prop:=
+  (match effs in (UnionF _ _) return Eff effs = E -> Prop with
+  | [] => run (cast_effs e1) = run (cast_effs e2)
+  | eff ::effs' => True
+  end) eq_refl.
+Next Obligation.
+  admit.
+Next Obligation.
+
 
 
 Lemma reduce_nonDet: 
-  denotes_choice nonDet_list (pure (repeat 10 11)).
+  denotes nonDet_list (pure (repeat 10 11)).
 Proof.
   intros.
   simpl.
-  eexists.
-  split; eauto; simpl; eauto.
+  econstructor; [| econstructor; eauto]; simpl; eauto.
 Qed.
 
-Lemma nonEffect_Denotes: forall v effs (l: v),
-    @denotes_choice effs _ (pure l) (pure l).
+Lemma nonEffect_Denotes: forall v (l: v),
+    denotes (pure[Eff [Choice]] l) (pure l).
 Proof.
-  reflexivity.
+  econstructor; simpl; eauto.
 Qed.
-
-Lemma nonEffect_pure: forall v x (l: v),
-    @denotes_choice nil _ (pure l) x -> x = (pure l).
-Proof.
-  destruct x; intros; simpl in *.
-  - subst.
-    reflexivity.
-  - inversion u.    
-Qed.
-
-Lemma pure_nonEffect: forall v (l: v) x,
-    x = (pure l) -> @denotes_choice nil _ (pure l) x.
-Proof.
-  intros; subst.
-  reflexivity.
-Qed.
-
-(* e1 refines e2 if forall t \in [| e2 |] -> t \in [| e1 |] *)
-Definition refines {v} {effs} e1 e2 := forall t, @denotes_choice v effs e2 t -> @denotes_choice v effs e1 t.
 
 Lemma refines_detList_nonDetList:
     refines nonDet_list det_list.
 Proof.
   intros t H.
-  apply nonEffect_pure in H.
-  subst.
+  inversion H; subst.
+  destruct t; [|intuition]; subst; eauto.
   apply reduce_nonDet.
 Qed.
 
@@ -213,9 +192,12 @@ Fixpoint denote_NDbexp `{Member Choice effs} `{Member (State state) effs} `{Memb
                         pure b
   | NBTrue => pure true
   | NBFalse => pure false
-  | NBEq a1 a2 | NBLe a1 a2 => (x1 <- (denote_NDaexp a1) ;
-                               x2 <- (denote_NDaexp a2) ;
-                               pure (beq_nat x1 x2))
+  | NBEq a1 a2 => (x1 <- (denote_NDaexp a1) ;
+                    x2 <- (denote_NDaexp a2) ;
+                    pure (beq_nat x1 x2))
+  | NBLe a1 a2 => (x1 <- (denote_NDaexp a1) ;
+                    x2 <- (denote_NDaexp a2) ;
+                    pure (leb x1 x2))
   | NBAnd b1 b2 => (x1 <- (denote_NDbexp b1);
                     x2 <- (denote_NDbexp b2);
                     pure (andb x1 x2))
@@ -324,14 +306,24 @@ Proof.
      split; eauto.
 Qed.
 
-(* 1 V Denotes polimorphic on the rest of the effects
-   2 V Choice to aexp
-   3 V State in denote
-   4 V Write an Imp program with choice and show that you can refine to another without
-   5 - Formulate Heap operations in the Algebraic Effects
-   6 - Semantics of while with the Comp monad
-       -- look at the delay effect 
-       -- use fuel
-       -- encode the idea of fuel as an effect
-          -> show that any action in the presence of fuel terminates
+(* Sept 13th meeting
+ * 1 V Denotes polimorphic on the rest of the effects
+ * 2 V Choice to aexp
+ * 3 V State in denote
+ * 4 V Write an Imp program with choice and show that you can refine to another without
+ * 5 - Formulate Heap operations in the Algebraic Effects
+ * 6 - Semantics of while with the Comp monad
+ *     -- look at the delay effect 
+ *     -- use fuel
+ *     -- encode the idea of fuel as an effect
+ *        -> show that any action in the presence of fuel terminates
+ *)
+
+(* Sept 20th meeting
+ * 1 - Change denote_choice to use Handlerelayp (Fix refinement)
+       -- This way we look at each node equally
+   2 - Denote
+     a) Fuel
+     b) Fix Monad / Delay (They are different things, though)
+     c) 
 *)

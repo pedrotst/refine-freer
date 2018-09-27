@@ -31,27 +31,6 @@ Class Computes (s : Type) (eff : Type -> Type) := {
 
 Arguments computes {s eff _ a} _ _ _ _.
 
-Require Import Eff.
-
-Class Denotes (v : Type) (effs : list (Type -> Type)) := {
-  denotes : Eff effs v -> v -> Prop
-}.
-
-Arguments denotes {v effs _} _ _.
-
-
-Program Instance Comp_Denotes {s}: Denotes s [Comp] :=
-  {
-    denotes := fun (st: Eff [Comp] s) v =>
-                 match st with
-                 | Pure x => x = v
-                 | @Impure _ _ x fx c => _
-                 end
-  }.
-Next Obligation.
-Admitted.
-
-
 (* Given an interpreter that can run any effect down to its denotation in
    Gallina, we can interpret any action. *)
 Inductive interpP {effs state a}

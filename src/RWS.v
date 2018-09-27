@@ -135,10 +135,10 @@ Definition State_func `(x : State s a) : s -> (s * a) :=
   | Put s => fun _ => (s, tt)
   end.
 
-Definition runState {s r a} (st : s) : Eff (State s :: r) a -> Eff r (a * s) :=
+Definition runState {s r a} (st : s) : Eff (State s :: r) a -> Eff r (s * a) :=
   handleRelayS
     st
-    (fun s x => Pure (x, s))
+    (fun s x => Pure (s, x))
     (fun t s x k =>
        match x in State _ a' return a' = t -> _ with
        | Get    => fun H => k s  (rew H in s)
