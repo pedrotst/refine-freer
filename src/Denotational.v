@@ -42,7 +42,8 @@ Definition In {A} (a : A) (e : Prop_Set A) : Prop :=
 
 Notation "x '∈' e" := (In x e) (at level 60).
 
-(*Definition odds : Prop_Set nat := ???.*)
+Definition odds : Prop_Set nat := 
+  fun n => exists m, n = 2 * m + 1.
 
 (* Membership doesn't need to be decideable! *)
 Definition terminating : Prop_Set com :=
@@ -90,9 +91,9 @@ Definition AExpDom := Prop_Set (nat * state).
 Definition BExpDom := Prop_Set (bool * state).
 Definition ComDom := Prop_Set (state * state).
 
-Reserved Notation "'[[' a ']]A'" (at level 40).
-Reserved Notation "'[[' b ']]B'" (at level 40).
-Reserved Notation "'[[' c ']]'" (at level 40).
+Reserved Notation "'⟦' a '⟧A'" (at level 40).
+Reserved Notation "'⟦' b '⟧B'" (at level 40).
+Reserved Notation "'⟦' c '⟧'" (at level 40).
 
 Fixpoint denote_A (a : aexp) : AExpDom :=
   fun nst =>
@@ -106,24 +107,24 @@ Fixpoint denote_A (a : aexp) : AExpDom :=
   | APlus a1 a2, (n', st) =>
 
     exists v1 v2,
-    (v1, st) ∈ [[ a1 ]]A
-    /\ (v2, st) ∈ [[ a2 ]]A
+    (v1, st) ∈ ⟦ a1 ⟧A
+    /\ (v2, st) ∈ ⟦ a2 ⟧A
     /\ n' = v1 + v2
 
 
 
   | AMinus a1 a2, (n', st) =>
     exists v1 v2,
-    (v1, st) ∈ [[ a1 ]]A
-    /\ (v2, st) ∈ [[ a2 ]]A
+    (v1, st) ∈ ⟦ a1 ⟧A
+    /\ (v2, st) ∈ ⟦ a2 ⟧A
     /\ n' = v1 - v2
   | AMult a1 a2, (n', st) =>
     exists v1 v2,
-    (v1, st) ∈ [[ a1 ]]A
-    /\ (v2, st) ∈ [[ a2 ]]A
+    (v1, st) ∈ ⟦ a1 ⟧A
+    /\ (v2, st) ∈ ⟦ a2 ⟧A
     /\ n' = v1 * v2
   end
-where "'[[' a ']]A'" := (denote_A a).
+where "'⟦' a '⟧A'" := (denote_A a).
 
 Fixpoint denote_B (b : bexp) : BExpDom :=
   fun nst =>
@@ -134,25 +135,25 @@ Fixpoint denote_B (b : bexp) : BExpDom :=
     v = false
   | BEq a1 a2, (v, st)   =>
     exists v1 v2,
-    (v1, st) ∈ [[ a1 ]]A /\ (v2, st) ∈ [[ a2 ]]A
+    (v1, st) ∈ ⟦ a1 ⟧A /\ (v2, st) ∈ ⟦ a2 ⟧A
     /\ (v1 = v2 -> v = true)
     /\ (v1 <> v2 -> v = false)
 
   | BLe a1 a2, (v, st)   =>
     exists v1 v2,
-    (v1, st) ∈ [[ a1 ]]A /\ (v2, st) ∈ [[ a2 ]]A
+    (v1, st) ∈ ⟦ a1 ⟧A /\ (v2, st) ∈ ⟦ a2 ⟧A
     /\ (v1 <= v2 -> v = true)
     /\ (~ v1 <= v2 -> v = false)
 
   | BNot b1, (v, st)     =>
-    (negb v, st) ∈ [[ b1 ]]B
+    (negb v, st) ∈ ⟦ b1 ⟧B
 
   | BAnd b1 b2, (v, st)  =>
     exists v1 v2,
-    (v1, st) ∈ [[ b1 ]]B /\ (v2, st) ∈ [[ b2 ]]B
+    (v1, st) ∈ ⟦ b1 ⟧B /\ (v2, st) ∈ ⟦ b2 ⟧B
     /\ v = (andb v1 v2)
   end
-where "'[[' b ']]B'" := (denote_B b).
+where "'⟦' b '⟧B'" := (denote_B b).
 
 
 (* Need a fixpoint operator for sets! *)
@@ -175,38 +176,38 @@ Fixpoint denote_Com (c : com)
     fun stst' =>
       let (st, st') := stst' in
       exists v,
-        (v, st) ∈ [[a1]]A
+        (v, st) ∈ ⟦a1⟧A
       /\ st' = t_update st x v
 
   | c1 ;;; c2 =>
     fun stst' =>
       let (st, st') := stst' in
       exists st'',
-        (st, st'') ∈ [[c1]] /\
-      (st'', st') ∈ [[c2]]
+        (st, st'') ∈ ⟦c1⟧ /\
+      (st'', st') ∈ ⟦c2⟧
 
   | IFB b THEN c1 ELSE c2 FI =>
     fun stst' =>
       let (st, st') := stst' in
-      ((true, st) ∈ [[b]]B /\ (st, st') ∈ [[c1]])
-      \/ ((false, st) ∈ [[b]]B /\ (st, st') ∈ [[c2]])
+      ((true, st) ∈ ⟦b⟧B /\ (st, st') ∈ ⟦c1⟧)
+      \/ ((false, st) ∈ ⟦b⟧B /\ (st, st') ∈ ⟦c2⟧)
 
   | WHILE b DO c END =>
       Fix (fun phi : Prop_Set _ =>
              fun st : state * state =>
                let (st, st') := st in
-               ((false, st) ∈ [[b]]B /\ st' = st)
+               ((false, st) ∈ ⟦b⟧B /\ st' = st)
                \/ (exists st'',
-                      (true, st) ∈ [[b]]B /\
-                      (st, st'') ∈ [[c]]
+                      (true, st) ∈ ⟦b⟧B /\
+                      (st, st'') ∈ ⟦c⟧
                       /\  (st'', st') ∈ phi))
 
 
   end
-where "'[[' c ']]'" := (denote_Com c).
+where "'⟦' c '⟧'" := (denote_Com c).
 
 Definition com_eq (c c' : com) : Prop :=
-  Same_Set ([[ c ]]) ([[c']]).
+  Same_Set (⟦ c ⟧) (⟦c'⟧).
 
 Lemma seq_skip_opt :
   forall c,
@@ -230,15 +231,15 @@ Lemma while_monotone :
     e1 ⊆ e2 ->
     (fun (st : state * state) =>
        let (st0, st') := st in
-       ((false, st0) ∈ [[b]]B /\ st' = st0) \/
+       ((false, st0) ∈ ⟦b⟧B /\ st' = st0) \/
        (exists st'' : state,
-           (true, st0) ∈ [[b]]B /\ (st0, st'') ∈ [[c]] /\ (st'', st') ∈ e1))
+           (true, st0) ∈ ⟦b⟧B /\ (st0, st'') ∈ ⟦c⟧ /\ (st'', st') ∈ e1))
       ⊆
     (fun (st : state * state) =>
        let (st0, st') := st in
-       ((false, st0) ∈ [[b]]B /\ st' = st0) \/
+       ((false, st0) ∈ ⟦b⟧B /\ st' = st0) \/
        (exists st'' : state,
-           (true, st0) ∈ [[b]]B /\ (st0, st'') ∈ [[c]] /\ (st'', st') ∈ e2)).
+           (true, st0) ∈ ⟦b⟧B /\ (st0, st'') ∈ ⟦c⟧ /\ (st'', st') ∈ e2)).
 Proof.
   unfold Subset, In; intros.
   destruct x; destruct H0 as [? | [st'' [? [? ?] ] ] ].
@@ -335,7 +336,7 @@ Qed.
 
 Lemma Denotational_A_BigStep_Equivalent :
   forall a st,
-    (aeval st a, st) ∈ [[a]]A.
+    (aeval st a, st) ∈ ⟦a⟧A.
 Proof.
   intros;
   induction a; simpl; try solve [constructor]; unfold In;
@@ -344,13 +345,13 @@ Qed.
 
 Lemma Denotational_B_BigStep_Equivalent :
   forall b st,
-    (beval st b, st) ∈ [[b]]B.
+    (beval st b, st) ∈ ⟦b⟧B.
 Proof.
 Admitted.
 
 Lemma BigStep_Denotational_Equivalent :
   forall c st st',
-    c / st \\ st' -> (st, st') ∈ [[c]].
+    c / st \\ st' -> (st, st') ∈ ⟦c⟧.
 Proof.
   intros.
   induction H; simpl; try solve [econstructor]; unfold In.
@@ -381,7 +382,7 @@ Qed.
 
 Lemma BigStep_A_Denotational_Equivalent :
   forall a st v,
-    (v, st) ∈ [[a]]A
+    (v, st) ∈ ⟦a⟧A
     -> v = aeval st a.
 Proof.
   induction a; simpl; intros st v H;
@@ -399,7 +400,7 @@ Qed.
 
 Lemma BigStep_B_Denotational_Equivalent :
   forall b st v,
-    (v, st) ∈ [[b]]B
+    (v, st) ∈ ⟦b⟧B
     -> v = beval st b.
 Proof.
 Admitted.
@@ -420,7 +421,7 @@ Qed.
 
 Lemma Denotational_BigStep_Equivalent :
   forall c st st',
-    (st, st') ∈ [[c]] -> c / st \\ st'.
+    (st, st') ∈ ⟦c⟧ -> c / st \\ st'.
 Proof.
   induction c; unfold In; simpl; intros st st' denote_c.
   - (* SKIP *)
@@ -447,7 +448,7 @@ Proof.
                          | [st'' [denote_b [denote_c ? ] ] ] ].
     + rewrite st_eq; econstructor.
       erewrite BigStep_B_Denotational_Equivalent; try reflexivity; assumption.
-    + eapply E_WhileLoop.
+    + econstructor.
       erewrite BigStep_B_Denotational_Equivalent; try reflexivity; assumption.
       apply IHc; eassumption.
       change st'' with (fst (st'', st')).

@@ -25,62 +25,19 @@ Definition nonDet_list : Eff [Choice] (list nat) :=
 Definition det_list: Eff [Choice] _ :=
      (pure (repeat 10 11)).
 
-Class Denotes a b eff :=
-  {
-    denotes: forall {effs},  Eff (eff :: effs) a -> Eff effs b -> Prop
-  }.
+Definition denotes_choice {effs v}: Eff (Choice :: effs) v -> Eff effs v -> Prop :=
+    handleRelayP
+      (fun x s => match s with
+               | Pure x' =>  x = x'
+               | Impure u k => False
+               end)
+      (fun A '(Pick p) a => p a).
 
-Instance Denotes_Choice: Denotes v v Choice :=
-  {
-    denotes := fun effs =>
-                handleRelayP
-                  (fun x s => match s with
-                           | Pure x' =>  x = x'
-                           | _ => False
-                           end)
-                  (fun A '(Pick p) a => p a)
-  }.
-
-Instance Denotes_Comp: Denotes v v Comp :=
-  {
-    denotes := fun effs =>
-                handleRelayP
-                  (fun x s => match s with
-                           | Pure x' =>  x = x'
-                           | _ => False
-                           end)
-                  (fun A (P: Comp A) a => P a)
-  }.
-
-(* This refinement definition is only with respect to the head of the Effects
- * So if want a refinement over multiple effects I have to compose several refiments
- * Can I make it better to run through every effect?
- *)
-
-Definition refin {a b eff effs} `(Denotes a b eff) (e1 e2: Eff (eff::effs) a) :=
-  forall t, denotes e2 t -> denotes e1 t.
-
-Arguments refin {_ _ _ _ _} _ _.
-
-Definition cast_effs `(H: effs' = effs) `(e: Eff effs a):  Eff effs' a.
-  intros; subst; assumption.
-Defined.
-
-Arguments cast_effs {_ _ H _} _.
-
-Fixpoint refines {a b effs} `(Member eff effs -> Denotes a b eff) (e1 e2: Eff effs a): Prop:=
-  (match effs in (UnionF _ _) return Eff effs = E -> Prop with
-  | [] => run (cast_effs e1) = run (cast_effs e2)
-  | eff ::effs' => True
-  end) eq_refl.
-Next Obligation.
-  admit.
-Next Obligation.
-
-
+Definition refines {a effs} (e1 e2: Eff (Choice::effs) a) :=
+  denotes_choice e2 ~> denotes_choice e1.
 
 Lemma reduce_nonDet: 
-  denotes nonDet_list (pure (repeat 10 11)).
+  denotes_choice nonDet_list (pure (repeat 10 11)).
 Proof.
   intros.
   simpl.
@@ -88,7 +45,7 @@ Proof.
 Qed.
 
 Lemma nonEffect_Denotes: forall v (l: v),
-    denotes (pure[Eff [Choice]] l) (pure l).
+    denotes_choice (pure[Eff [Choice]] l) (pure l).
 Proof.
   econstructor; simpl; eauto.
 Qed.
@@ -163,10 +120,6 @@ Inductive NDcom : Type :=
 | NDCWhile : NDbexp -> NDcom -> NDcom.
 
 
-(*
-Polymorphic Inductive Fuel {a: Type} (t: a -> a): a -> Type :=
-| Consume : forall (v: a), Fuel t (t v).
-*)
 Definition Fuel: Type -> Type := State nat.
 
 Definition step_fuel `{Member Fuel effs} `(f: a -> Eff effs v) (x: a) (default: v):
@@ -251,11 +204,6 @@ Defined.
 Notation "⇄ x" := (effect_swap x) (at level 50).
 Notation "⟦ c ⟧" := (@denote_NDimp [Choice; State state; Fuel] _ _ _ c) (at level 40).
 
-(* e1 refines e2 if forall t \in [| e2 |] -> t \in [| e1 |] *)
-Definition refines_imp {v} {effs} e1 e2 := forall t, @denotes_choice v effs e2 t -> @denotes_choice v effs e1 t.
-
-
-
 Definition plusNDet :=
   ⟦ NDCAss "X" (NDnum (Pick (fun x => x <= 2))) ⟧.
 
@@ -268,43 +216,44 @@ Proof.
   unfold refines.
   intros.
   cbn in *.
-  induction t; simpl.
-  -- exists 2; eauto.
+  destruct x; simpl.
+  -- inversion H.
   -- simpl in *.
-     destruct H.
-     exists x0.
-     destruct H.
-     split; auto.
+     constructor 2 with 2; eauto.
 Qed.
+
 Definition nonDet_assign:=
   ⟦ NDCWhile (NDBool (Pick (fun b => b = true))) (NDCAss "X" (Daexp (ANum 3))) ⟧.
 
 Definition det_assign:=
-  ⟦ NDCWhile NBTrue (NDCAss "X" (Daexp (ANum 2))) ⟧.
+  ⟦ NDCWhile NBTrue (NDCAss "X" (Daexp (ANum 3))) ⟧.
+
+Inductive Fix {dom cod} : Type -> Type:=
+   | call : forall (x:dom), Fix (cod x).
 
 Lemma refines_assign:
   refines nonDet_assign det_assign.
 Proof.
-  unfold refines.
   intros.
-  induction t.
-  -- destruct H.
-     simpl in *; eauto.
-     induction x.
-     --- simpl in *.
-         exists 0; simpl.
-         exists true; split; eauto.
-     --- simpl in *.
-         apply IHx.
-         destruct H.
-         destruct H.
-         auto.
-  -- simpl in *.
-     destruct H.
-     destruct H.
-     eexists.
-     split; eauto.
-Qed.
+  intro.
+  simpl.
+  induction x; intro.
+  -- inversion H.
+  -- inversion H0; subst.
+     clear H0.
+     repeat match goal with
+     | [ H: existT _ _ _ = existT _ _ _ |- _ ] => apply inj_pair2 in H
+     end.
+     subst.
+     unfold denotes_choice in *.
+     constructor.
+     intro.
+     specialize H2 with y.
+     inversion H2.
+     clear H2.
+     subst.
+     specialize H with y.
+Admitted.
 
 (* Sept 13th meeting
  * 1 V Denotes polimorphic on the rest of the effects
@@ -326,4 +275,16 @@ Qed.
      a) Fuel
      b) Fix Monad / Delay (They are different things, though)
      c) 
+*)
+(* Sept 27th meeting
+ * Fix dom cod : Type -> Type: =
+   | call : forall (x:dom), Fix (cod x) -- or something like that
+ *
+ * Imp with a heap
+ *   -> 
+ * Implement Imp with a Compcert heap as an effect
+ * Implement Imp with a Raw memory (I assume this is from Fiat) as an effect
+ *   -> Need to import those libs to here
+ * Define a (stateful) homomophism between the two
+ * 
 *)
