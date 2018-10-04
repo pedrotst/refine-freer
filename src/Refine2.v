@@ -223,13 +223,17 @@ Proof.
 Qed.
 
 Definition nonDet_assign:=
-  ⟦ NDCWhile (NDBool (Pick (fun b => b = true))) (NDCAss "X" (Daexp (ANum 3))) ⟧.
+  send (Put 1);; ⟦ NDCWhile (NDBool (Pick (fun b => b = true))) (NDCAss "X" (Daexp (ANum 3))) ⟧.
 
 Definition det_assign:=
-  ⟦ NDCWhile NBTrue (NDCAss "X" (Daexp (ANum 3))) ⟧.
+  send (Put 1);; ⟦ NDCWhile NBTrue (NDCAss "X" (Daexp (ANum 3))) ⟧.
 
 Inductive Fix {dom cod} : Type -> Type:=
    | call : forall (x:dom), Fix (cod x).
+
+Ltac clean_existTs := repeat match goal with
+     | [ H: existT _ _ _ = existT _ _ _ |- _ ] => apply inj_pair2 in H
+     end; subst.
 
 Lemma refines_assign:
   refines nonDet_assign det_assign.
@@ -239,20 +243,15 @@ Proof.
   simpl.
   induction x; intro.
   -- inversion H.
-  -- inversion H0; subst.
-     clear H0.
-     repeat match goal with
-     | [ H: existT _ _ _ = existT _ _ _ |- _ ] => apply inj_pair2 in H
-     end.
-     subst.
+  -- unfold det_assign in *.
+     simpl in *.
      unfold denotes_choice in *.
-     constructor.
-     intro.
-     specialize H2 with y.
-     inversion H2.
+     inversion H0; subst.
+     clean_existTs.
      clear H2.
-     subst.
-     specialize H with y.
+     simpl in *.
+     inversion H0.
+     clean_existTs.
 Admitted.
 
 (* Sept 13th meeting
