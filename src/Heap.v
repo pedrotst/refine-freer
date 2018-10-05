@@ -8,10 +8,9 @@ Require Import
 
 Generalizable All Variables.
 
-Module HeapState (M : WSfun Ptr_as_DT).
+Module HeapState <: (WSfun Ptr_as_DT).
 
-Module Import FMapExt := FMapExt Ptr_as_DT M.
-Module P := FMapExt.P.
+Module P := WSfun.P.
 Module F := P.F.
 
 Open Scope N_scope.
