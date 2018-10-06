@@ -94,9 +94,8 @@ Definition Locals: Type -> Type := Heap string nat.
 Definition HeapCanon: Type -> Type := Heap nat nat.
 
 (* The denotation functions follows straightfoward with these two heaps as effects
- * TODO: add other effects
  *)
-Fixpoint denote_aexp {effs} (a:aexp): Eff ([Locals; HeapCanon]++effs) nat :=
+Fixpoint denote_aexp {effs} (a:aexp): Eff (Locals :: HeapCanon :: effs) nat :=
   match a with
   | ANum n => pure n
   | AId x => send (Read x)
@@ -106,7 +105,7 @@ Fixpoint denote_aexp {effs} (a:aexp): Eff ([Locals; HeapCanon]++effs) nat :=
   | ALoad e => a <- denote_aexp e ; send (Read a)
   end.
 
-Fixpoint denote_bexp {effs} (b:bexp): Eff ([Locals; HeapCanon]++effs) bool :=
+Fixpoint denote_bexp {effs} (b:bexp): Eff (Locals :: HeapCanon :: effs) bool :=
   match b with
   | BTrue => pure true
   | BFalse => pure false
@@ -116,7 +115,7 @@ Fixpoint denote_bexp {effs} (b:bexp): Eff ([Locals; HeapCanon]++effs) bool :=
   | BNot b' => (r <- denote_bexp b'; pure (negb r))
   end.
 
-Fixpoint denote_imp {effs} (c: com): Eff ([Locals; HeapCanon]++effs) unit :=
+Fixpoint denote_imp {effs} (c: com): Eff (Locals :: HeapCanon :: effs) unit :=
   match c with
   | CSkip => pure tt
   | CAss x ax => (a <- denote_aexp ax;
@@ -133,7 +132,7 @@ Fixpoint denote_imp {effs} (c: com): Eff ([Locals; HeapCanon]++effs) unit :=
                           pure tt
   end.
 
-(* It would be nice if we can collapse these two heaps in only one
+(* It like a waste to run things with two heaps, let's colapse them into a single one
  * We choose to erase the Locals Heap, since nat is a more natural key then string
  *)
 Fixpoint string_to_asciiList (s: string): list ascii :=
@@ -161,17 +160,20 @@ Definition handler `{Member HeapCanon effs}: Locals ~> Eff effs :=
     end.
 
 (* With this we have everything we need to fuse the Locals heap into the HeapCanon *)
-Definition heap_fusion {effs}
-  : Eff (Locals::(HeapCanon::effs)) unit -> Eff (HeapCanon :: effs) unit:=
+Definition colapse_heap {effs}
+  : Eff (Locals :: HeapCanon:: effs) unit -> Eff (HeapCanon :: effs) unit:=
   @interpret _ _ handler unit.
 
-(* Here is an example of this in action *)
-Definition foo: com := ("X" ::= ANum 3;;; "Y" ::= 4;;; CStore 0 (4+1) ;;; CStore 1 (4+2);;;
-                                             "Z" ::= ALoad 0;;; SKIP).
+(* Here is an example in action *)
+Definition foo: com := ("X" ::= ANum 3 ;;;
+                        "Y" ::= 4      ;;;
+                        CStore 0 (4+1) ;;;
+                        CStore 1 (4+2) ;;;
+                        "Z" ::= ALoad 0;;; SKIP).
 
 Notation "⟦ c ⟧" := (@denote_imp nil c) (at level 40).
 
 Definition foo_denote := ⟦ foo ⟧.
 
 Eval compute in (foo_denote).
-Eval compute in (heap_fusion foo_denote).
+Eval compute in (colapse_heap foo_denote).
