@@ -160,7 +160,7 @@ Definition handler `{Member HeapCanon effs}: Locals ~> Eff effs :=
     end.
 
 (* With this we have everything we need to fuse the Locals heap into the HeapCanon *)
-Definition colapse_heap {effs}
+Definition collapse_heap {effs}
   : Eff (Locals :: HeapCanon:: effs) unit -> Eff (HeapCanon :: effs) unit:=
   @interpret _ _ handler unit.
 
@@ -176,4 +176,4 @@ Notation "⟦ c ⟧" := (@denote_imp nil c) (at level 40).
 Definition foo_denote := ⟦ foo ⟧.
 
 Eval compute in (foo_denote).
-Eval compute in (colapse_heap foo_denote).
+Eval compute in (collapse_heap foo_denote).
